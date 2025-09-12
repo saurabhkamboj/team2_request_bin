@@ -213,11 +213,32 @@ server.get("/api/new_url_endpoint", async (_req, res) => {
 webSocketServer.on('connection', (ws) => {
   console.log('WebSocket client connected!');
 
+  // Handles a 'pong' response from client when a 'ping' frame is sent
+  ws.isAlive = true;
+  ws.on('pong', () => {
+    ws.isAlive = true;
+  });
+
   ws.on('error', console.error);
 
   ws.on('close', () => {
     console.log('WebSocket client closed!')
   });
+});
+
+// Checks if the ws connection is alive at a set interval of 30 seconds
+const interval = setInterval(function ping() {
+  webSocketServer.clients.forEach((ws) => {
+    if (ws.isAlive === false) return ws.terminate();
+
+    ws.isAlive = false;
+    ws.ping();
+  });
+}, 30000);
+
+// Clears interval when the web socket server stops listening
+webSocketServer.on('close', () => {
+  clearInterval(interval);
 });
 
 //Handles any type of request to the exposed endpoint, sends request data to request table (webhooks use this endpoint)
