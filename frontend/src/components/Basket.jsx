@@ -34,11 +34,6 @@ const Basket = ({ setBaskets }) => {
     if (webSocketEnabled && !webSocketReference.current) {
       const socket = new WebSocket(`${wsProtocol}://${window.location.host}/api/`);
 
-      socket.onopen = () => {
-        console.log('WebSocket opened');
-        webSocketReference.current = socket;
-      }
-
       socket.onmessage = (event) => {
         const message = JSON.parse(event.data);
         if (message.type === 'new_request') {
@@ -46,18 +41,12 @@ const Basket = ({ setBaskets }) => {
         }
       };
 
-      socket.onclose = () => {
-        console.log('WebSocket closed');
-        webSocketReference.current = null;
-      }
-    }
+      socket.onclose = () => console.log('WebSocket closed');
 
-    return () => {
-      if (webSocketReference.current?.readyState === WebSocket.OPEN) {
-        webSocketReference.current.close();
-        webSocketReference.current = null;
-      }
-    };
+      webSocketReference.current = socket;
+
+      return () => socket.close();
+    }
   }, [getRequestsHook, webSocketEnabled, wsProtocol]);
 
   const deleteBasket = () => {
