@@ -44,9 +44,14 @@ const Basket = ({ setBaskets }) => {
       socket.onclose = () => console.log('WebSocket closed');
 
       webSocketReference.current = socket;
-
-      return () => socket.close();
     }
+
+    return () => {
+      if (webSocketReference.current) {
+        webSocketReference.current.close();
+        webSocketReference.current = null;
+      }
+    };
   }, [getRequestsHook, webSocketEnabled, wsProtocol]);
 
   const deleteBasket = () => {
